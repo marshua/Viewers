@@ -184,9 +184,14 @@ workflows:
                 - master
                 - feature/*
                 - hotfix/*
-      - demo_site_publish:
+      - build_demo_site:
           requires:
             - build_and_test
+          filters:
+            branches:
+              only: gcloud-build
+      - demo_site_publish:
+          requires:
             - build_demo_site
           filters:
             branches:
