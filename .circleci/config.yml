@@ -143,7 +143,7 @@ jobs:
               # Build the static site
               yarn run build:demo:ci
 
-              gsutil rsync -R build gs://$STORAGE_BUCKET
+              gsutil rsync -R build gs://$GOOGLE_STORAGE_BUCKET
             fi
 
 workflows:
@@ -160,6 +160,8 @@ workflows:
                 - feature/*
                 - hotfix/*
       - demo_site_publish:
+          requires:
+            - build_and_test
           filters:
             branches:
               only: gcloud-build
