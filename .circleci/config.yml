@@ -121,6 +121,30 @@ jobs:
               docker push ohif/$IMAGE_NAME:$IMAGE_VERSION_FULL
               docker push ohif/$IMAGE_NAME:latest
             fi
+  demo_site_publish:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Deploy latest version to viewer.ohif.org
+          command: |
+            # This file will exist if a new version was published by
+            # our `semantic-release` command in the previous job
+            if [[ ! -e tmp/updated-version.txt ]]; then
+              exit 0
+            else
+              echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+              gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+              gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+
+              # Build the static site
+              yarn run build:demo:ci
+
+              gsutil rsync -R build gs://$STORAGE_BUCKET
+            fi
 
 workflows:
   version: 2
@@ -135,6 +159,10 @@ workflows:
                 - master
                 - feature/*
                 - hotfix/*
+      - demo_site_publish:
+          filters:
+            branches:
+              only: gcloud-build
 
   # MERGE TO MASTER
   cut_release:
