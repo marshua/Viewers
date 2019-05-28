@@ -122,7 +122,9 @@ jobs:
               docker push ohif/$IMAGE_NAME:latest
             fi
   demo_site_publish:
-    <<: *defaults
+    working_directory: ~/repo
+    docker:
+    - image: google/cloud-sdk
     steps:
       - attach_workspace:
           at: ~/repo
